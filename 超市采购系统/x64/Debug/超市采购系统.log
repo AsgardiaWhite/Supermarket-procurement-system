@@ -1,1 +1,5 @@
-﻿D:\Visual Studio2017\Common7\IDE\VC\VCTargets\Microsoft.Cpp.WindowsSDK.targets(46,5): error MSB8036: 找不到 Windows SDK 版本10.0.16299.0。请安装所需的版本的 Windows SDK 或者在项目属性页中或通过右键单击解决方案并选择“重定解决方案目标”来更改 SDK 版本。
+﻿  stdafx.cpp
+  Commodity.cpp
+  超市采购系统.cpp
+  正在生成代码...
+  超市采购系统.vcxproj -> G:\GitHub项目\Supermarket-procurement-system\x64\Debug\超市采购系统.exe
