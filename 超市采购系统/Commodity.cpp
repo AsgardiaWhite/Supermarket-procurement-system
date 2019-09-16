@@ -10,6 +10,7 @@ void Commodity::AddNew(){
 	Node *p,*s;
 	s = new Node;
 	p = head;
+	// 遍历到链表的尾部
 	while (p->Next){
 		p = p->Next;
 	}
@@ -25,10 +26,9 @@ void Commodity::AddNew(){
 		cin.get();
 		return;
 	}
-
 	cout << "请输入商品名称" << endl;
 	cin >> s->Name;
-	while (1){
+	while (true){
 		if (s->Name == ""){
 			cout << "商品名称不能为空，请重新输入" << endl;
 			cin >> s->Name;
@@ -36,10 +36,9 @@ void Commodity::AddNew(){
 			break;
 		}
 	}
-
 	cout << "请输入采购数量（仅限数字）" << endl;
 	cin >> s->Num;
-	while (1){
+	while (true){
 		if (cin.fail()){
 			cin.clear();
 			system("cls");
@@ -53,10 +52,9 @@ void Commodity::AddNew(){
 			break;
 		}
 	}
-
 	cout << "请输入采购价（仅限数字）" << endl;
 	cin >> s->BuyIn;
-	while (1){
+	while (true){
 		if (cin.fail()){
 			cin.clear();
 			system("cls");
@@ -70,10 +68,9 @@ void Commodity::AddNew(){
 			break;
 		}
 	}
-
 	cout << "请输入售价（仅限数字）" << endl;
 	cin >> s->SellOut;
-	while (1){
+	while (true){
 		if (cin.fail()){
 			cin.clear();
 			system("cls");
@@ -88,7 +85,6 @@ void Commodity::AddNew(){
 		}
 	}
 	system("cls");
-	Save();
 	cout << "添加成功" << endl;
 }
 void Commodity::Buy(){
@@ -96,25 +92,25 @@ void Commodity::Buy(){
 	cout << "请输入要买入的商品名称：\n";
 	cout << "Name:"; 
 	cin >> Name;
-	Node *p1, *p2;
-	p1 = head;
-	p2 = NULL;
-	while (p1){
-		if (p1->Name == Name) break;
+	Node *phead, *temp;
+	phead = head;
+	temp = NULL;
+	while (phead){
+		if (phead->Name == Name)
+			break;
 		else{
-			p2 = p1;
-			p1 = p1->Next;
+			temp = phead;
+			phead = phead->Next;
 		}
 	}
-	if (p1 != NULL){
+	if (phead != NULL){
 		cout << "请输入买入数量" << endl;
-		int a; 
-		cin >> a;
-		p1->Num = p1->Num + a;
+		int number; 
+		cin >> number;
+		phead->Num = phead->Num + number;
 		system("cls");
 		cout << "添加成功!\n";
-		Save();
-		Save(p1->ID, 3);
+		SaveLog(phead->ID, 3);
 	}
 	else {
 		system("cls");
@@ -126,30 +122,29 @@ void Commodity::Sell(){
 	cout << "请输入要卖出的商品名称：\n";
 	cout << "Name:"; 
 	cin >> Name;
-	Node *p1, *p2;
-	p1 = head;
-	p2 = NULL;
-	while (p1){
-		if (p1->Name == Name) 
+	Node *phead, *temp;
+	phead = head;
+	temp = NULL;
+	while (phead){
+		if (phead->Name == Name)
 			break;
 		else{
-			p2 = p1;
-			p1 = p1->Next;
+			temp = phead;
+			phead = phead->Next;
 		}
 	}
-	if (p1 != NULL){
+	if (phead != NULL){
 		cout << "请输入卖出数量" << endl;
-		int a;
-		cin >> a;
-		if ((p1->Num - a) < 0){
+		int number;
+		cin >> number;
+		if ((phead->Num - number) < 0){
 			system("cls");
 			cout << "库存量不足" << endl;
 		}else{
-			p1->Num = p1->Num - a;
+			phead->Num = phead->Num - number;
 			system("cls");
 			cout << "卖出成功!\n";
-			Save();
-			Save(p1->ID, 2);
+			SaveLog(phead->ID, 2);
 		}
 	}
 	else {
@@ -170,23 +165,23 @@ void Commodity::Register(){
 	string pwd;
 	cout << "请输入管理员密码" << endl;
 	cin >> pwd;
-	while (1){
+	while (true){
 		if (pwd !="password"){
 			cout << "密码错误" << endl;
 			break;
 		}else{
-			User a, b;
+			User loginUser, checkUser; //注册信息与检查信息
 			FILE *fp;
 			fp = fopen("user.txt", "r");
 
-			fread(&b, sizeof(struct User), 1, fp);//读入一个结构体字符块到b
+			fread(&checkUser, sizeof(struct User), 1, fp);//读入一个结构体字符块到b
 			cout << "请输入账号" << endl;
-			cin >> a.id;
+			cin >> loginUser.id;
 
-			while (1){
-				if (strcmp(a.id, b.id)){ //如果两串不相等
+			while (true){
+				if (strcmp(loginUser.id, checkUser.id)){ //如果两串不相等
 					if (!feof(fp)){ //如果未到文件尾
-						fread(&b, sizeof(struct User), 1, fp);
+						fread(&checkUser, sizeof(struct User), 1, fp);
 					}
 					else
 						break;
@@ -197,9 +192,9 @@ void Commodity::Register(){
 				}
 			}
 			cout << "请输入密码" << endl;
-			cin >> a.pwd;
+			cin >> loginUser.pwd;
 			fp = fopen("user.txt", "a");
-			fwrite(&a, sizeof(struct User), 1, fp);
+			fwrite(&loginUser, sizeof(struct User), 1, fp);
 			system("cls");
 			cout << "账号注册成功" << endl;
 			fclose(fp);
@@ -208,30 +203,30 @@ void Commodity::Register(){
 	}
 }
 bool Commodity::Login(){
-	User a, b;
+	User loginUser, checkUser;
 	FILE *fp; //建立一个文件操作指针
-	errno_t err; //判断该文件流是否存在，存在返回1
-	err = fopen_s(&fp, "user.txt", "r"); //若return 1，则将指向这个文件的文件流给fp
-	//fp = fopen_s("user.txt", "r");
-	fread(&b, sizeof(struct User), 1, fp);
+	fp = fopen("user.txt", "r");
+	fread(&checkUser, sizeof(struct User), 1, fp); //在文件中读取信息
 	cout << "请输入账号" << endl;
-	cin >> a.id;
-	while (1){
-		if (strcmp(a.id, b.id) == 0){ //如果有此用户名
+	cin >> loginUser.id;
+	while (true){
+		if (strcmp(loginUser.id, checkUser.id) == 0){ 
+			//如果在文件中匹配到了对应的用户名，即登录成功
 			break;
 		}else{
 			if (!feof(fp)){ //如果文件没有读完
-				fread(&b, sizeof(struct User), 1, fp);
+				fread(&checkUser, sizeof(struct User), 1, fp);
 			}else{
 				cout << "此用户名不存在！" << endl;
 				fclose(fp);
-				Login();
+				Login(); //重新输入用户名
 			}
 		}
 	}
 	cout << "请输入密码" << endl;
-	cin >> a.pwd;
-	if (strcmp(a.pwd, b.pwd) == 0){ //如果密码匹配
+	cin >> loginUser.pwd;
+	if (strcmp(loginUser.pwd, checkUser.pwd) == 0){ 
+		//如果密码匹配成功
 		fclose(fp);
 		system("cls");
 		cout << "登录成功，欢迎使用!" << endl;
@@ -245,8 +240,7 @@ bool Commodity::Login(){
 }
 void Commodity::Save(){
 	file.open("stock.txt", ios::in | ios::out | ios::binary|ios::trunc);
-	Node p;
-	Node *q = head;
+	Node p,*q = head;
 	while (q->Next) {
 		p.ID = q->Next->ID;
 		p.Name = q->Next->Name;
@@ -258,7 +252,7 @@ void Commodity::Save(){
 	}
 	file.close();
 }
-void Commodity::Save(int _ID, int flag){ //flag 为标志位，2代表销售记录，3代表购入记录，_ID 为商品编号ID
+void Commodity::SaveLog(int _ID, int flag){ //flag 为标志位，2代表销售记录，3代表购入记录，_ID 为商品编号ID
 	ofstream  file;
 	Node * p = head;
 	time_t t = time(0);
@@ -270,13 +264,13 @@ void Commodity::Save(int _ID, int flag){ //flag 为标志位，2代表销售记录，3代表购
 			while (p->Next && p->Next->ID != _ID)
 				p = p->Next;
 			if (p->Next){
-				file << "ID:" << p->Next->ID
-					<< "\tNAME:" << p->Next->Name
-					<< "\tCOST:" << p->Next->BuyIn
-					<< "\tVALUE:" << p->Next->SellOut
-					<< "\tSTOCK:" << p->Next->Num
-					<< "\tTIME:" << temp
-					<< "\tREMARKS:" << "SELLOUT"
+				file << "商品编号:" << p->Next->ID
+					<< "\t商品名称:" << p->Next->Name
+					<< "\t买入价:" << p->Next->BuyIn
+					<< "\t售价:" << p->Next->SellOut
+					<< "\t库存量:" << p->Next->Num
+					<< "\t时间:" << temp
+					<< "\t操作类型:" << "卖出"
 					<< "\n";
 			}
 		}else{
@@ -289,13 +283,13 @@ void Commodity::Save(int _ID, int flag){ //flag 为标志位，2代表销售记录，3代表购
 			while (p->Next && p->Next->ID != _ID)
 				p = p->Next;
 			if (p->Next){
-				file << "ID:" << p->Next->ID
-					<< "\tNAME:" << p->Next->Name
-					<< "\tCOST:" << p->Next->BuyIn
-					<< "\tVALUE:" << p->Next->SellOut
-					<< "\tSTOCK:" << p->Next->Num
-					<< "\tTIME:" << temp
-					<< "\tREMARKS:" << "BUYIN"
+				file << "商品编号:" << p->Next->ID
+					<< "\t商品名称:" << p->Next->Name
+					<< "\t买入价:" << p->Next->BuyIn
+					<< "\t售价:" << p->Next->SellOut
+					<< "\t库存量:" << p->Next->Num
+					<< "\t时间:" << temp
+					<< "\t操作类型:" << "买入"
 					<< "\n";
 			}
 		}else{
@@ -316,105 +310,107 @@ void Commodity::del_info(){
 		q = p->Next;
 		p->Next = q->Next;
 		delete q;
-		Save();
 	}else
-		cout << " 信息错误，删除失败！" << endl;
+		system("cls");
+		cout << "信息错误，删除失败！" << endl;
 }
 void Commodity::ShowJournal(){
+	system("cls");
 	ifstream infile("journal.txt", ios::in | ios::binary);//读一条信息
 	char ch;
-	while (infile.get(ch))  cout << ch;
+	while (infile.get(ch))  
+		cout << ch;
 	infile.close();
 }
-void Commodity::Add_up(){ //统计超市商品总数量于价值
+void Commodity::Add_up(){ 
+	//统计超市商品的数量与价值
 	system("cls");
 	cout << "****商品统计****\n";
 	int Amount = 0; 
-	float jiage = 0, Value = 0;
+	float Price = 0, Value = 0;
 	string Name;
 	cout << "\n请输入要统计的商品名称：\n";
 	cin >> Name;
-	Node *p1;
-	p1 = head;
-	while (p1){
-		if (p1->Name == Name) break;
-		else p1 = p1->Next;
+	Node *phead;
+	phead = head;
+	while (phead){
+		if (phead->Name == Name) 
+			break;
+		else 
+			phead = phead->Next;
 	}
-	if (p1){
-		while (p1 &&p1->Name==Name){
-			Amount += p1->Num;
-			Value += p1->Num*p1->BuyIn;
-			jiage = p1->SellOut;
-			p1 = p1->Next;
+	if (phead){
+		while (phead &&phead->Name==Name){
+			Amount += phead->Num;
+			Value += phead->Num*phead->BuyIn;
+			Price = phead->SellOut;
+			phead = phead->Next;
 		}
 		cout << "商品总数量是：\n";
 		cout << Amount;
 		cout << "\n商品总价值是：\n";
 		cout << Value << "\n";
 		cout << "全部售出可获得利润为：\n";
-		cout << (Amount*jiage) - Value << "\n";
+		cout << (Amount*Price) - Value << "\n";
 	}else
 		cout << "\nSorry,未找到该类商品!\n";
 }
 void Commodity::Modify(){ //修改商品信息
-	int amount;
+	int amount,ID;
 	string Name;
-	int ID;
-	float SellOut;
-	float Price;
-	system("Cls");
-	cout << "修改商品，请输入要查的商品名称：\n";
+	float SellOut,Price;
+	system("cls");
+	cout << "修改商品，请输入要查找的商品名称：\n";
 	cout << "Name:"; 
 	cin >> Name;//查找要修改的结点
-	Node *p1, *p2;
-	p1 = head;
-	p2 = NULL;
-	while (p1){
-		if (p1->Name == Name) 
+	Node *phead, *temp;
+	phead = head;
+	temp = NULL;
+	while (phead){
+		if (phead->Name == Name)
 			break;
 		else{
-			p2 = p1;
-			p1 = p1->Next;
+			temp = phead;
+			phead = phead->Next;
 		}
-	}//修改结点
-	if (p1 != NULL) //若找到结点
-	{
-		cout << "ID:" << p1->ID << " Name:" << p1->Name << "SellOut:" << p1->SellOut << " amount:" << p1->Num << endl;
-		cout << "\n请选择要修改的信息（1—商品代码，2—商品名称，3—单价，4—该商品库存量，5—修改全部信息）:\n";
-		int a; cin >> a;
-		switch (a){
-			case 1:cout << "请输入新代码："; cin >> ID;
-				Name = p1->Name; SellOut = p1->SellOut; amount = p1->Num; Price = p1->BuyIn; break;
-			case 2:cout << "请输入新名称："; cin >> Name;
-				ID = p1->ID; SellOut = p1->SellOut; amount = p1->Num; Price = p1->BuyIn; break;
-			case 3:cout << "请输入新单价："; cin >> SellOut;
-				ID = p1->ID; Name = p1->Name; amount = p1->Num; Price = p1->BuyIn; break;
-			case 4:cout << "请输入新库存数据："; cin >> amount;
-				ID = p1->ID; Name = p1->Name; SellOut = p1->SellOut; Price = p1->BuyIn; break;
-			case 5:cout << "请输入新信息：\n";
-				cout << "商品代码:"; cin >> ID;
-				cout << "商品名称:"; cin >> Name;
-				cout << "商品单价:"; cin >> SellOut;
-				cout << "该商品库存量:"; cin >> amount; break;
-		}//创建新商品结点
-		Node *p3;
-		p3 = new Node;
-		p3->ID = ID;
-		p3->Name = Name;
-		p3->SellOut = SellOut;
-		p3->BuyIn = Price;
-		p3->Num = amount;
-		//员工结点替换到链表
-		p3->Next = p1->Next;
-		if (p1 == head) //若要替换的结点是第一个结点
-			head = p3;
-		else //若要替换的结点是后续结点
-			p2->Next = p3;
-		delete p1; //删除原来的商品结点
-		Save();
-		cout << "修改成功!\n";
 	}
-	else //未找到结点
+	if (phead != NULL){
+		//若找到结点
+		cout << "编号:" << phead->ID << " 名称:" << phead->Name << " 单价:" << phead->SellOut << " 库存量:" << phead->Num << endl;
+		cout << "\n请选择要修改的信息（1—商品代码，2—商品名称，3—单价，4—该商品库存量）:\n";
+		int opt; 
+		cin >> opt;
+		switch (opt){
+			case 1:cout << "请输入新代码："; cin >> ID;
+				Name = phead->Name; SellOut = phead->SellOut; amount = phead->Num; Price = phead->BuyIn; break;
+			case 2:cout << "请输入新名称："; cin >> Name;
+				ID = phead->ID; SellOut = phead->SellOut; amount = phead->Num; Price = phead->BuyIn; break;
+			case 3:cout << "请输入新单价："; cin >> SellOut;
+				ID = phead->ID; Name = phead->Name; amount = phead->Num; Price = phead->BuyIn; break;
+			case 4:cout << "请输入新库存数据："; cin >> amount;
+				ID = phead->ID; Name = phead->Name; SellOut = phead->SellOut; Price = phead->BuyIn; break;
+			default:
+				system("cls");
+				cout << "无效编号！请重新输入" << endl;
+				break;
+		}
+		//创建新的商品结点
+		Node *newComdity;
+		newComdity = new Node;
+		newComdity->ID = ID;
+		newComdity->Name = Name;
+		newComdity->SellOut = SellOut;
+		newComdity->BuyIn = Price;
+		newComdity->Num = amount;
+		//员工结点替换到链表
+		newComdity->Next = phead->Next;
+		if (phead == head) //若要替换的结点是第一个结点
+			head = newComdity;
+		else //若要替换的结点是后续结点
+			temp->Next = newComdity;
+		delete phead; //删除原来的商品结点
+		cout << "修改成功!\n";
+	}else //未找到结点
 		cout << "Sorry,未找到!\n";
 }
 void Commodity::GetInformathion(){
@@ -446,29 +442,38 @@ void Commodity::GetInformathion(){
 	}
 }
 void Commodity::Sort(){
-	cout << "*********请选择查看方式**********" << endl;
-	cout << "1————按商品ID排序" << endl;
-	cout << "2————按商品库存排序" << endl;
-	cout << "3————按商品购入价排序" << endl;
-	cout << "4————按商品售出价排序" << endl;
-	int n, i = 1;
-	while (i){
-		cout << "请输入你选择的排序方式:";
-		cin >> n;
-		if (n == 1){
-			SortbyId();
-		}else if (n == 2){
-			SortbyNum();
-		}else if (n == 3){
-			SortbyBuyIn();
-		}else if (n == 4){
-			SortbySellOut();
-		}else{
-			cout << "输入有误，请重新输入！" << endl;
-			continue;
+	if (head->Next->Next){
+		cout << "*********请选择查看方式**********" << endl;
+		cout << "1————按商品ID排序" << endl;
+		cout << "2————按商品库存排序" << endl;
+		cout << "3————按商品购入价排序" << endl;
+		cout << "4————按商品售出价排序" << endl;
+		int opt, choice = 1;
+		while (choice) {
+			cout << "请输入你选择的排序方式:";
+			cin >> opt;
+			if (opt == 1) {
+				SortbyId();
+			}
+			else if (opt == 2) {
+				SortbyNum();
+			}
+			else if (opt == 3) {
+				SortbyBuyIn();
+			}
+			else if (opt == 4) {
+				SortbySellOut();
+			}
+			else {
+				cout << "输入有误，请重新输入！" << endl;
+				continue;
+			}
+			cout << "是否继续选择排序方式？1————继续，0————结束" << endl;
+			cin >> choice;
 		}
-		cout << "是否继续选择排序方式？1————继续，0————结束" << endl;
-		cin >> i;
+	}else{
+		system("cls");
+		cout << "库存为0，请录入商品！" << endl;
 	}
 }
 void Commodity::SortbyId(){
@@ -497,15 +502,15 @@ void Commodity::SortbyId(){
 			}
 		}
 	}
-	Node *l = head;
+	Node *newLink = head;
 	system("cls");
-	while (l->Next){
-		cout << "商品名：" << l->Next->Name << endl;
-		cout << "商品编号：" << l->Next->ID << endl;
-		cout << "商品库存：" << l->Next->Num << endl;
-		cout << "商品进价：" << l->Next->BuyIn << endl;
-		cout << "商品售价：" << l->Next->SellOut << endl;
-		l = l->Next;
+	while (newLink->Next->Next){
+		cout << "商品名：" << newLink->Next->Next->Name << endl;
+		cout << "商品编号：" << newLink->Next->Next->ID << endl;
+		cout << "商品库存：" << newLink->Next->Next->Num << endl;
+		cout << "商品进价：" << newLink->Next->Next->BuyIn << endl;
+		cout << "商品售价：" << newLink->Next->Next->SellOut << endl;
+		newLink = newLink->Next;
 	}
 }
 void Commodity::SortbyNum(){
@@ -534,15 +539,15 @@ void Commodity::SortbyNum(){
 			}
 		}
 	}
-	Node *l = head;
+	Node *newLink = head;
 	system("cls");
-	while (l->Next){
-		cout << "商品名：" << l->Next->Name << endl;
-		cout << "商品编号：" << l->Next->ID << endl;
-		cout << "商品库存：" << l->Next->Num << endl;
-		cout << "商品进价：" << l->Next->BuyIn << endl;
-		cout << "商品售价：" << l->Next->SellOut << endl;
-		l = l->Next;
+	while (newLink->Next->Next){
+		cout << "商品名：" << newLink->Next->Next->Name << endl;
+		cout << "商品编号：" << newLink->Next->Next->ID << endl;
+		cout << "商品库存：" << newLink->Next->Next->Num << endl;
+		cout << "商品进价：" << newLink->Next->Next->BuyIn << endl;
+		cout << "商品售价：" << newLink->Next->Next->SellOut << endl;
+		newLink = newLink->Next;
 	}
 }
 void Commodity::SortbyBuyIn(){
@@ -571,15 +576,15 @@ void Commodity::SortbyBuyIn(){
 			}
 		}
 	}
-	Node *l = head;
+	Node *newLink = head;
 	system("cls");
-	while (l->Next){
-		cout << "商品名：" << l->Next->Name << endl;
-		cout << "商品编号：" << l->Next->ID << endl;
-		cout << "商品库存：" << l->Next->Num << endl;
-		cout << "商品进价：" << l->Next->BuyIn << endl;
-		cout << "商品售价：" << l->Next->SellOut << endl;
-		l = l->Next;
+	while (newLink->Next->Next){
+		cout << "商品名：" << newLink->Next->Next->Name << endl;
+		cout << "商品编号：" << newLink->Next->Next->ID << endl;
+		cout << "商品库存：" << newLink->Next->Next->Num << endl;
+		cout << "商品进价：" << newLink->Next->Next->BuyIn << endl;
+		cout << "商品售价：" << newLink->Next->Next->SellOut << endl;
+		newLink = newLink->Next;
 	}
 }
 void Commodity::SortbySellOut(){
@@ -608,15 +613,15 @@ void Commodity::SortbySellOut(){
 			}
 		}
 	}
-	Node *l = head;
+	Node *newLink = head;
 	system("cls");
-	while (l->Next){
-		cout << "商品名：" << l->Next->Name << endl;
-		cout << "商品编号：" << l->Next->ID << endl;
-		cout << "商品库存：" << l->Next->Num << endl;
-		cout << "商品进价：" << l->Next->BuyIn << endl;
-		cout << "商品售价：" << l->Next->SellOut << endl;
-		l = l->Next;
+	while (newLink->Next->Next){
+		cout << "商品名：" << newLink->Next->Next->Name << endl;
+		cout << "商品编号：" << newLink->Next->Next->ID << endl;
+		cout << "商品库存：" << newLink->Next->Next->Num << endl;
+		cout << "商品进价：" << newLink->Next->Next->BuyIn << endl;
+		cout << "商品售价：" << newLink->Next->Next->SellOut << endl;
+		newLink = newLink->Next;
 	}
 }
 Commodity::Commodity(){
